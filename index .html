@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abbyu Digital Clock Multi-Mode</title>
+    <style>
+        body {
+            margin: 0; background: #050505; display: flex; justify-content: center;
+            align-items: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif;
+            overflow: hidden; color: white;
+        }
+
+        /* Naga Animasi di Background */
+        .dragon-aura {
+            position: absolute; font-size: 150px; opacity: 0.1;
+            z-index: 0; animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg) translateX(200px); } to { transform: rotate(360deg) translateX(200px); } }
+
+        .container {
+            position: relative; z-index: 10; background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px); border: 1px solid rgba(0, 210, 255, 0.3);
+            padding: 40px; border-radius: 30px; text-align: center;
+            width: 400px; cursor: pointer; transition: 0.3s;
+        }
+
+        .container:active { transform: scale(0.95); }
+
+        .mode-label { color: #00d2ff; letter-spacing: 3px; font-size: 12px; margin-bottom: 10px; text-transform: uppercase; }
+        .display { font-size: 60px; font-weight: bold; margin: 10px 0; text-shadow: 0 0 20px #00d2ff; }
+        .sub-text { color: #94a3b8; font-size: 14px; }
+        
+        /* Gaya Khusus Alarm & Stopwatch */
+        .controls { margin-top: 20px; display: none; gap: 10px; justify-content: center; }
+        input[type="time"] { background: #1e293b; border: 1px solid #00d2ff; color: white; padding: 5px; border-radius: 5px; }
+        button { background: #00d2ff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="dragon-aura">🐉</div>
+
+    <div class="container" id="mainCard" onclick="changeMode()">
+        <div id="modeLabel" class="mode-label">Abbyu Digital Clock</div>
+        <div id="mainDisplay" class="display">00:00:00</div>
+        <div id="subText" class="sub-text">Klik untuk ganti mode</div>
+
+        <!-- Kontrol Stopwatch -->
+        <div id="swControls" class="controls">
+            <button onclick="event.stopPropagation(); startSW()">Start</button>
+            <button onclick="event.stopPropagation(); stopSW()">Stop</button>
+            <button onclick="event.stopPropagation(); resetSW()">Reset</button>
+        </div>
+
+        <!-- Kontrol Alarm -->
+        <div id="alControls" class="controls">
+            <input type="time" id="alarmTime" onclick="event.stopPropagation()">
+            <button onclick="event.stopPropagation(); setAlarm()">Set Alarm</button>
+        </div>
+    </div>
+
+    <script>
+        let mode = 0; // 0: Clock, 1: Stopwatch, 2: Alarm
+        let swInterval, swTime = 0;
+        let alarmTarget = null;
+
+        function changeMode() {
+            mode = (mode + 1) % 3;
+            document.querySelectorAll('.controls').forEach(el => el.style.display = 'none');
+            
+            if (mode === 0) {
+                document.getElementById('modeLabel').innerText = "Abbyu Digital Clock";
+            } else if (mode === 1) {
+                document.getElementById('modeLabel').innerText = "Stopwatch Mode";
+                document.getElementById('swControls').style.display = 'flex';
+                updateSWDisplay();
+            } else if (mode === 2) {
+                document.getElementById('modeLabel').innerText = "Alarm Mode";
+                document.getElementById('alControls').style.display = 'flex';
+                document.getElementById('mainDisplay').innerText = "Set Time";
+            }
+        }
+
+        // LOGIKA JAM & ALARM
+        function updateAll() {
+            const now = new Date();
+            if (mode === 0) {
+                document.getElementById('mainDisplay').innerText = now.toTimeString().split(' ')[0];
+            }
+            
+            if (alarmTarget && now.getHours() + ":" + now.getMinutes() === alarmTarget) {
+                alert("ALARM BANGUN! (Abbyu Clock)");
+                alarmTarget = null;
+            }
+        }
+
+        // LOGIKA STOPWATCH
+        function startSW() { clearInterval(swInterval); swInterval = setInterval(() => { swTime++; updateSWDisplay(); }, 1000); }
+        function stopSW() { clearInterval(swInterval); }
+        function resetSW() { stopSW(); swTime = 0; updateSWDisplay(); }
+        function updateSWDisplay() {
+            let h = Math.floor(swTime / 3600).toString().padStart(2, '0');
+            let m = Math.floor((swTime % 3600) / 60).toString().padStart(2, '0');
+            let s = (swTime % 60).toString().padStart(2, '0');
+            if (mode === 1) document.getElementById('mainDisplay').innerText = `${h}:${m}:${s}`;
+        }
+
+        function setAlarm() {
+            alarmTarget = document.getElementById('alarmTime').value;
+            alert("Alarm diset untuk: " + alarmTarget);
+        }
+
+        setInterval(updateAll, 1000);
+    </script>
+</body>
+</html>
